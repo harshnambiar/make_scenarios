@@ -1,0 +1,583 @@
+{
+    "name": "Text to Audio Telegram AI Bot",
+    "flow": [
+        {
+            "id": 4,
+            "module": "telegram:SearchChats",
+            "version": 1,
+            "parameters": {
+                "__IMTCONN__": 5997253
+            },
+            "mapper": {
+                "limit": "2",
+                "offset": "-1",
+                "isToUseAutopaging": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 150
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "telegram"
+                            },
+                            "label": "My Telegram Bot connection"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:telegram",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "offset",
+                        "type": "number",
+                        "label": "Start Offset (Update ID)"
+                    },
+                    {
+                        "name": "limit",
+                        "type": "number",
+                        "label": "Limit"
+                    },
+                    {
+                        "name": "isToUseAutopaging",
+                        "type": "boolean",
+                        "label": "Confirm Processed Requests by Increasing the Offset in the Telegram Server [auto-paging]",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 6,
+            "module": "regexp:Parser",
+            "version": 1,
+            "parameters": {
+                "global": false,
+                "pattern": "CheerBot:(.*)",
+                "multiline": false,
+                "sensitive": true,
+                "singleline": false,
+                "continueWhenNoRes": true
+            },
+            "mapper": {
+                "text": "{{4.text}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 150
+                },
+                "restore": {},
+                "parameters": [
+                    {
+                        "name": "pattern",
+                        "type": "text",
+                        "label": "Pattern",
+                        "required": true
+                    },
+                    {
+                        "name": "global",
+                        "type": "boolean",
+                        "label": "Global match",
+                        "required": true
+                    },
+                    {
+                        "name": "sensitive",
+                        "type": "boolean",
+                        "label": "Case sensitive",
+                        "required": true
+                    },
+                    {
+                        "name": "multiline",
+                        "type": "boolean",
+                        "label": "Multiline",
+                        "required": true
+                    },
+                    {
+                        "name": "singleline",
+                        "type": "boolean",
+                        "label": "Singleline",
+                        "required": true
+                    },
+                    {
+                        "name": "continueWhenNoRes",
+                        "type": "boolean",
+                        "label": "Continue the execution of the route even if the module finds no matches",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "text",
+                        "type": "text",
+                        "label": "Text"
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "$1",
+                        "type": "text",
+                        "label": "$1"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 9,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "mapper": null,
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 150
+                }
+            },
+            "routes": [
+                {
+                    "flow": [
+                        {
+                            "id": 7,
+                            "module": "elevenlabs:createTextToSpeech",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": 6717011
+                            },
+                            "filter": {
+                                "name": "Hit Found",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{6.`$1`}}",
+                                            "o": "exist"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "text": "{{6.`$1`}}{{substring(6.`$1`; 8; length(6.`$1`))}}",
+                                "model_id": "eleven_flash_v2_5",
+                                "voice_id": "EXAVITQu4vr4xnSDxMaL",
+                                "voice_settings": {}
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 150
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "model_id": {
+                                            "mode": "chose",
+                                            "label": "Eleven Flash v2.5 (eleven_flash_v2_5)"
+                                        },
+                                        "voice_id": {
+                                            "mode": "chose",
+                                            "label": "premade/Sarah"
+                                        },
+                                        "optimize_streaming_latency": {
+                                            "mode": "chose",
+                                            "label": "Empty"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "elevenlabs"
+                                            },
+                                            "label": "My ElevenLabs connection"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:elevenlabs",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "voice_id",
+                                        "type": "select",
+                                        "label": "Voice",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "model_id",
+                                        "type": "select",
+                                        "label": "Model",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "text",
+                                        "type": "text",
+                                        "label": "Text",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "voice_settings",
+                                        "spec": [
+                                            {
+                                                "name": "stability",
+                                                "type": "number",
+                                                "label": "Stability",
+                                                "validate": {
+                                                    "max": 1,
+                                                    "min": 0
+                                                }
+                                            },
+                                            {
+                                                "name": "similarity_boost",
+                                                "type": "number",
+                                                "label": "Similarity Boost",
+                                                "validate": {
+                                                    "max": 1,
+                                                    "min": 0
+                                                }
+                                            }
+                                        ],
+                                        "type": "collection",
+                                        "label": "Voice Settings"
+                                    },
+                                    {
+                                        "name": "optimize_streaming_latency",
+                                        "type": "select",
+                                        "label": "Optimize Streaming Latency",
+                                        "validate": {
+                                            "enum": [
+                                                "0",
+                                                "1",
+                                                "2",
+                                                "3",
+                                                "4"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            },
+                            "onerror": [
+                                {
+                                    "id": 12,
+                                    "module": "telegram:SendReplyMessage",
+                                    "version": 1,
+                                    "parameters": {
+                                        "__IMTCONN__": 5997253
+                                    },
+                                    "mapper": {
+                                        "text": "Unfortunately your request could not be processed {{4.from.username}}",
+                                        "chatId": "{{4.chat.id}}",
+                                        "parseMode": "",
+                                        "replyMarkup": "",
+                                        "messageThreadId": "",
+                                        "replyToMessageId": "",
+                                        "replyMarkupAssembleType": "reply_markup_enter"
+                                    },
+                                    "metadata": {
+                                        "designer": {
+                                            "x": 1200,
+                                            "y": 267
+                                        },
+                                        "restore": {
+                                            "expect": {
+                                                "parseMode": {
+                                                    "label": "Empty"
+                                                },
+                                                "disableNotification": {
+                                                    "mode": "chose"
+                                                },
+                                                "replyMarkupAssembleType": {
+                                                    "label": "Enter the Reply Markup"
+                                                }
+                                            },
+                                            "parameters": {
+                                                "__IMTCONN__": {
+                                                    "data": {
+                                                        "scoped": "true",
+                                                        "connection": "telegram"
+                                                    },
+                                                    "label": "My Telegram Bot connection"
+                                                }
+                                            }
+                                        },
+                                        "parameters": [
+                                            {
+                                                "name": "__IMTCONN__",
+                                                "type": "account:telegram",
+                                                "label": "Connection",
+                                                "required": true
+                                            }
+                                        ],
+                                        "expect": [
+                                            {
+                                                "name": "chatId",
+                                                "type": "text",
+                                                "label": "Chat ID",
+                                                "required": true
+                                            },
+                                            {
+                                                "name": "text",
+                                                "type": "text",
+                                                "label": "Text",
+                                                "required": true
+                                            },
+                                            {
+                                                "name": "messageThreadId",
+                                                "type": "number",
+                                                "label": "Message Thread ID"
+                                            },
+                                            {
+                                                "name": "parseMode",
+                                                "type": "select",
+                                                "label": "Parse Mode",
+                                                "validate": {
+                                                    "enum": [
+                                                        "Markdown",
+                                                        "HTML"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "name": "disableNotification",
+                                                "type": "boolean",
+                                                "label": "Disable Notifications"
+                                            },
+                                            {
+                                                "name": "disableWebPagePreview",
+                                                "type": "boolean",
+                                                "label": "Disable Link Previews"
+                                            },
+                                            {
+                                                "name": "replyToMessageId",
+                                                "type": "number",
+                                                "label": "Original Message ID"
+                                            },
+                                            {
+                                                "name": "replyMarkupAssembleType",
+                                                "type": "select",
+                                                "label": "Enter/Assemble the Reply Markup Field",
+                                                "validate": {
+                                                    "enum": [
+                                                        "reply_markup_enter",
+                                                        "reply_markup_assemble"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "name": "replyMarkup",
+                                                "type": "text",
+                                                "label": "Reply Markup"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "id": 11,
+                                    "module": "builtin:Ignore",
+                                    "version": 1,
+                                    "metadata": {
+                                        "designer": {
+                                            "x": 1499,
+                                            "y": 276
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "id": 8,
+                            "module": "telegram:sendAudio",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": 5997253
+                            },
+                            "mapper": {
+                                "data": "{{7.data}}",
+                                "title": "",
+                                "chatId": "{{4.chat.id}}",
+                                "caption": "Here is your requested audio",
+                                "duration": "",
+                                "filename": "{{7.fileName}}",
+                                "sendType": "send_bydata",
+                                "parseMode": "",
+                                "performer": "",
+                                "contentType": "",
+                                "replyMarkup": "",
+                                "messageThreadId": "",
+                                "replyMarkupAssembleType": "reply_markup_enter"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1200,
+                                    "y": 0
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "sendType": {
+                                            "label": "Data"
+                                        },
+                                        "parseMode": {
+                                            "label": "Empty"
+                                        },
+                                        "contentType": {
+                                            "mode": "chose",
+                                            "label": "Empty"
+                                        },
+                                        "replyMarkupAssembleType": {
+                                            "label": "Enter the Reply Markup"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "telegram"
+                                            },
+                                            "label": "My Telegram Bot connection"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:telegram",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "chatId",
+                                        "type": "text",
+                                        "label": "Chat ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "messageThreadId",
+                                        "type": "number",
+                                        "label": "Message Thread ID"
+                                    },
+                                    {
+                                        "name": "caption",
+                                        "type": "text",
+                                        "label": "Caption"
+                                    },
+                                    {
+                                        "name": "sendType",
+                                        "type": "select",
+                                        "label": "Send by",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "send_bydata",
+                                                "send_byurl",
+                                                "send_byid"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "parseMode",
+                                        "type": "select",
+                                        "label": "Parse Mode",
+                                        "validate": {
+                                            "enum": [
+                                                "Markdown",
+                                                "HTML"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "disableNotification",
+                                        "type": "boolean",
+                                        "label": "Disable Notifications"
+                                    },
+                                    {
+                                        "name": "duration",
+                                        "type": "number",
+                                        "label": "Duration"
+                                    },
+                                    {
+                                        "name": "performer",
+                                        "type": "text",
+                                        "label": "Performer"
+                                    },
+                                    {
+                                        "name": "title",
+                                        "type": "text",
+                                        "label": "Title"
+                                    },
+                                    {
+                                        "name": "replyMarkupAssembleType",
+                                        "type": "select",
+                                        "label": "Enter/Assemble the Reply Markup Field",
+                                        "validate": {
+                                            "enum": [
+                                                "reply_markup_enter",
+                                                "reply_markup_assemble"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "contentType",
+                                        "type": "select",
+                                        "label": "Content Type"
+                                    },
+                                    {
+                                        "name": "filename",
+                                        "type": "text",
+                                        "label": "File Name",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "data",
+                                        "type": "buffer",
+                                        "label": "Data",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "replyMarkup",
+                                        "type": "text",
+                                        "label": "Reply Markup"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": []
+    }
+}
